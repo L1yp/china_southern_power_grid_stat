@@ -77,7 +77,7 @@ class CSGConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Create the options flow."""
-        return CSGOptionsFlowHandler(config_entry)
+        return CSGOptionsFlowHandler()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -375,9 +375,12 @@ class CSGConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class CSGOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options flow for China Southern Power Grid Statistics."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+    def __init__(self) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
+        # NOTE: Do NOT set self.config_entry here. Since HA 2024.11 the base
+        # OptionsFlow class already provides a read-only `config_entry` property,
+        # and assigning to it raises AttributeError on HA 2025.12+ (the setter
+        # was removed), which previously caused a 500 when opening the options.
         self.all_electricity_accounts: list[CSGElectricityAccount] = []
 
     async def async_step_init(
