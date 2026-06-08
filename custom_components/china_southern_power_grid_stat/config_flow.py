@@ -526,13 +526,18 @@ class CSGOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is None:
             return self.async_show_form(step_id=STEP_SETTINGS, data_schema=schema)
 
+        # 不原地修改 entry 的嵌套 dict，整体替换以确保变更被检测到
         new_data = self.config_entry.data.copy()
-        new_data[CONF_SETTINGS][CONF_UPDATE_INTERVAL] = user_input[CONF_UPDATE_INTERVAL]
+        new_settings = dict(new_data[CONF_SETTINGS])
+        new_settings[CONF_UPDATE_INTERVAL] = user_input[CONF_UPDATE_INTERVAL]
+        new_data[CONF_SETTINGS] = new_settings
         new_data[CONF_UPDATED_AT] = str(int(time.time() * 1000))
         self.hass.config_entries.async_update_entry(
             self.config_entry,
             data=new_data,
         )
+        # 重新加载：让协调器读取新的更新间隔（其在 __init__ 时取快照），无需重启 HA
+        await self.hass.config_entries.async_reload(self.config_entry.entry_id)
         return self.async_create_entry(
             title="",
             data={},
