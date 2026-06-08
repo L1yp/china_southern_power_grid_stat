@@ -53,6 +53,7 @@ from .const import (
     STEP_USER,
     STEP_VALIDATE_SMS_CODE,
     STEP_WX_QR_LOGIN,
+    VERSION,
 )
 from .csg_client import (
     LOGIN_TYPE_TO_QR_CODE_TYPE,
@@ -387,6 +388,12 @@ class CSGOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Manage the options."""
+        _LOGGER.warning(
+            "打开选项设置 (options flow) version=%s, entry=%s —— "
+            "能看到这条日志说明运行的是新代码",
+            VERSION,
+            self.config_entry.title,
+        )
 
         schema = vol.Schema(
             {

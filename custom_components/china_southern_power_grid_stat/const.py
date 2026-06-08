@@ -6,6 +6,9 @@ from .csg_client import LoginType
 
 DOMAIN = "china_southern_power_grid_stat"
 
+# integration version, keep in sync with manifest.json
+VERSION = "1.2.1"
+
 # config flow
 # main account (phone number)
 CONF_ACCOUNT_NUMBER = "account_number"

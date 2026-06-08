@@ -18,6 +18,7 @@ from .const import (
     CONF_LOGIN_TYPE,
     CONF_UPDATED_AT,
     DOMAIN,
+    VERSION,
 )
 from .csg_client import (
     CSGAPIError,
@@ -34,6 +35,11 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up China Southern Power Grid Statistics from a config entry."""
+    _LOGGER.warning(
+        "China Southern Power Grid Statistics 正在加载 (version=%s, entry=%s)",
+        VERSION,
+        entry.title,
+    )
     hass.data.setdefault(DOMAIN, {})
 
     # validate session, re-authenticate if needed
