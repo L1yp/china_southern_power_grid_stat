@@ -40,7 +40,7 @@
 
 使用[HACS](https://hacs.xyz/)或[手动下载安装](https://github.com/CubicPill/china_southern_power_grid_stat/releases)
 
-注意：本集成需求`Home Assistant`最低版本为`2022.11`。
+注意：本分支因适配新版选项流（OptionsFlow），要求 `Home Assistant` 最低版本为 `2024.11`（该版本起 `OptionsFlow` 提供只读的 `config_entry` 属性；旧版会导致打开"设置"时报错）。
 
 ### 配置界面
 
