@@ -1,0 +1,39 @@
+# ---- IDE / 编辑器 ----
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ---- Python 缓存 / 构建产物 ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.installed.cfg
+
+# ---- 测试 / 类型检查 / lint 缓存 ----
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# ---- 虚拟环境 ----
+.venv/
+venv/
+env/
+ENV/
+
+# ---- 凭证 / 本地配置 ----
+.env
+*.local
