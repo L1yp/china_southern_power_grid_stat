@@ -70,11 +70,26 @@
         "data": {
           "update_interval": "更新间隔（秒）"
         }
+      },
+      "ladder": {
+        "title": "阶梯电价设置",
+        "description": "按年累计的三档阶梯电价。填写第1、2档的年累计电量上限和三档电价；第3档为超过第2档上限后的电价（无上限）。启用后会新增本地阶梯档位/电价/剩余电量/本年预估电费等传感器。",
+        "data": {
+          "ladder_enabled": "启用本地阶梯电价计算",
+          "ladder_tier1_max": "第1档 年累计电量上限（kWh）",
+          "ladder_tier2_max": "第2档 年累计电量上限（kWh）",
+          "ladder_tier1_price": "第1档 电价（元/kWh）",
+          "ladder_tier2_price": "第2档 电价（元/kWh）",
+          "ladder_tier3_price": "第3档 电价（元/kWh，无上限）"
+        }
       }
     },
     "abort": {
       "no_account": "账户未绑定缴费号",
       "all_added": "没有可添加到此集成的缴费号"
+    },
+    "error": {
+      "ladder_threshold_order": "第2档电量上限必须大于第1档"
     }
   }
 }

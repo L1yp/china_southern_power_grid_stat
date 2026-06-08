@@ -7,7 +7,7 @@ from .csg_client import LoginType
 DOMAIN = "china_southern_power_grid_stat"
 
 # integration version, keep in sync with manifest.json
-VERSION = "1.2.1"
+VERSION = "1.3.0"
 
 # config flow
 # main account (phone number)
@@ -23,6 +23,15 @@ CONF_ACTION = "action"
 CONF_SMS_CODE = "sms_code"
 CONF_REFRESH_QR_CODE = "refresh_qr_code"
 
+# 阶梯电价设置（存于 CONF_SETTINGS[CONF_LADDER] 子字典）
+CONF_LADDER = "ladder"
+CONF_LADDER_ENABLED = "ladder_enabled"
+CONF_LADDER_TIER1_MAX = "ladder_tier1_max"
+CONF_LADDER_TIER2_MAX = "ladder_tier2_max"
+CONF_LADDER_TIER1_PRICE = "ladder_tier1_price"
+CONF_LADDER_TIER2_PRICE = "ladder_tier2_price"
+CONF_LADDER_TIER3_PRICE = "ladder_tier3_price"
+
 STEP_USER = "user"
 STEP_SMS_LOGIN = "sms_login"
 STEP_SMS_PWD_LOGIN = "sms_pwd_login"
@@ -35,6 +44,7 @@ STEP_VALIDATE_QR_LOGIN = "validate_qr_login"
 STEP_INIT = "init"
 STEP_SETTINGS = "settings"
 STEP_ADD_ACCOUNT = "add_account"
+STEP_LADDER = "ladder"
 
 ABORT_NO_ACCOUNT = "no_account"
 ABORT_ALL_ADDED = "all_added"
@@ -44,6 +54,7 @@ ERROR_CANNOT_CONNECT = "cannot_connect"
 ERROR_INVALID_AUTH = "invalid_auth"
 ERROR_UNKNOWN = "unknown"
 ERROR_QR_NOT_SCANNED = "qr_not_scanned"
+ERROR_LADDER_THRESHOLD_ORDER = "ladder_threshold_order"
 
 # UI
 LOGIN_TYPE_TO_QR_APP_NAME = {
@@ -73,6 +84,12 @@ SUFFIX_LAST_YEAR_COST = "last_year_total_cost"
 SUFFIX_LAST_MONTH_KWH = "last_month_total_usage"
 SUFFIX_LAST_MONTH_COST = "last_month_total_cost"
 
+# 本地计算的阶梯电价相关 sensor（基于用户配置的阶梯 + 年累计用电量本地计算）
+SUFFIX_LOCAL_LADDER = "local_ladder"
+SUFFIX_LOCAL_LADDER_TARIFF = "local_ladder_tariff"
+SUFFIX_LOCAL_LADDER_REMAINING_KWH = "local_ladder_remaining_kwh"
+SUFFIX_LOCAL_YEAR_EST_COST = "local_year_est_cost"
+
 # 传感器中文显示名（英文后缀 -> 中文名），仅影响实体的友好名称(name)，
 # 不影响 unique_id / entity_id，因此不会产生重复实体
 SUFFIX_TO_NAME_ZH = {
@@ -92,6 +109,10 @@ SUFFIX_TO_NAME_ZH = {
     SUFFIX_LAST_YEAR_COST: "去年累计电费",
     SUFFIX_LAST_MONTH_KWH: "上月累计用电量",
     SUFFIX_LAST_MONTH_COST: "上月累计电费",
+    SUFFIX_LOCAL_LADDER: "本地阶梯档位",
+    SUFFIX_LOCAL_LADDER_TARIFF: "本地阶梯电价",
+    SUFFIX_LOCAL_LADDER_REMAINING_KWH: "本地阶梯剩余电量",
+    SUFFIX_LOCAL_YEAR_EST_COST: "本年阶梯预估电费",
 }
 
 ATTR_KEY_THIS_MONTH_BY_DAY = "this_month_by_day"
@@ -116,3 +137,13 @@ SETTING_LAST_YEAR_UPDATE_DAY_THRESHOLD = 7
 
 # defaults
 DEFAULT_UPDATE_INTERVAL = timedelta(hours=4).seconds
+
+# 阶梯电价默认值（按年累计，3 档；阈值/电价仅为占位示例，需用户按本地实际填写）
+DEFAULT_LADDER = {
+    CONF_LADDER_ENABLED: False,
+    CONF_LADDER_TIER1_MAX: 2400,
+    CONF_LADDER_TIER2_MAX: 4800,
+    CONF_LADDER_TIER1_PRICE: 0.6,
+    CONF_LADDER_TIER2_PRICE: 0.65,
+    CONF_LADDER_TIER3_PRICE: 0.9,
+}

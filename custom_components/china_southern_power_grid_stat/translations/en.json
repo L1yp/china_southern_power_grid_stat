@@ -62,12 +62,27 @@
             "all_added": "\u6ca1\u6709\u53ef\u6dfb\u52a0\u5230\u6b64\u96c6\u6210\u7684\u7f34\u8d39\u53f7",
             "no_account": "\u8d26\u6237\u672a\u7ed1\u5b9a\u7f34\u8d39\u53f7"
         },
+        "error": {
+            "ladder_threshold_order": "\u7b2c2\u6863\u7535\u91cf\u4e0a\u9650\u5fc5\u987b\u5927\u4e8e\u7b2c1\u6863"
+        },
         "step": {
             "add_account": {
                 "title": "\u9009\u62e9\u7f34\u8d39\u53f7"
             },
             "init": {
                 "title": "\u9009\u62e9\u64cd\u4f5c"
+            },
+            "ladder": {
+                "data": {
+                    "ladder_enabled": "\u542f\u7528\u672c\u5730\u9636\u68af\u7535\u4ef7\u8ba1\u7b97",
+                    "ladder_tier1_max": "\u7b2c1\u6863 \u5e74\u7d2f\u8ba1\u7535\u91cf\u4e0a\u9650\uff08kWh\uff09",
+                    "ladder_tier2_max": "\u7b2c2\u6863 \u5e74\u7d2f\u8ba1\u7535\u91cf\u4e0a\u9650\uff08kWh\uff09",
+                    "ladder_tier1_price": "\u7b2c1\u6863 \u7535\u4ef7\uff08\u5143/kWh\uff09",
+                    "ladder_tier2_price": "\u7b2c2\u6863 \u7535\u4ef7\uff08\u5143/kWh\uff09",
+                    "ladder_tier3_price": "\u7b2c3\u6863 \u7535\u4ef7\uff08\u5143/kWh\uff0c\u65e0\u4e0a\u9650\uff09"
+                },
+                "description": "\u6309\u5e74\u7d2f\u8ba1\u7684\u4e09\u6863\u9636\u68af\u7535\u4ef7\u3002\u586b\u5199\u7b2c1\u30012\u6863\u7684\u5e74\u7d2f\u8ba1\u7535\u91cf\u4e0a\u9650\u548c\u4e09\u6863\u7535\u4ef7\uff1b\u7b2c3\u6863\u4e3a\u8d85\u8fc7\u7b2c2\u6863\u4e0a\u9650\u540e\u7684\u7535\u4ef7\uff08\u65e0\u4e0a\u9650\uff09\u3002\u542f\u7528\u540e\u4f1a\u65b0\u589e\u672c\u5730\u9636\u68af\u6863\u4f4d/\u7535\u4ef7/\u5269\u4f59\u7535\u91cf/\u672c\u5e74\u9884\u4f30\u7535\u8d39\u7b49\u4f20\u611f\u5668\u3002",
+                "title": "\u9636\u68af\u7535\u4ef7\u8bbe\u7f6e"
             },
             "settings": {
                 "data": {

@@ -37,9 +37,17 @@ from .const import (
     ATTR_KEY_THIS_YEAR_BY_MONTH,
     CONF_AUTH_TOKEN,
     CONF_ELE_ACCOUNTS,
+    CONF_LADDER,
+    CONF_LADDER_ENABLED,
+    CONF_LADDER_TIER1_MAX,
+    CONF_LADDER_TIER1_PRICE,
+    CONF_LADDER_TIER2_MAX,
+    CONF_LADDER_TIER2_PRICE,
+    CONF_LADDER_TIER3_PRICE,
     CONF_SETTINGS,
     CONF_UPDATE_INTERVAL,
     DATA_KEY_LAST_UPDATE_DAY,
+    DEFAULT_LADDER,
     DOMAIN,
     SETTING_LAST_MONTH_UPDATE_DAY_THRESHOLD,
     SETTING_LAST_YEAR_UPDATE_DAY_THRESHOLD,
@@ -56,6 +64,10 @@ from .const import (
     SUFFIX_LAST_YEAR_KWH,
     SUFFIX_LATEST_DAY_COST,
     SUFFIX_LATEST_DAY_KWH,
+    SUFFIX_LOCAL_LADDER,
+    SUFFIX_LOCAL_LADDER_REMAINING_KWH,
+    SUFFIX_LOCAL_LADDER_TARIFF,
+    SUFFIX_LOCAL_YEAR_EST_COST,
     SUFFIX_THIS_MONTH_COST,
     SUFFIX_THIS_MONTH_KWH,
     SUFFIX_THIS_YEAR_COST,
@@ -191,6 +203,32 @@ async def async_setup_entry(
         ]
 
         all_sensors.extend(sensors)
+
+        # 本地阶梯电价传感器：仅在用户在"阶梯电价设置"里启用后才创建
+        ladder_cfg = config_entry.data[CONF_SETTINGS].get(CONF_LADDER, DEFAULT_LADDER)
+        if ladder_cfg.get(CONF_LADDER_ENABLED):
+            all_sensors.extend(
+                [
+                    # 本地当前阶梯档位（1/2/3）
+                    CSGLadderStageSensor(
+                        coordinator, ele_account_number, SUFFIX_LOCAL_LADDER
+                    ),
+                    # 本地当前阶梯电价（元/kWh）
+                    CSGCostSensor(
+                        coordinator, ele_account_number, SUFFIX_LOCAL_LADDER_TARIFF
+                    ),
+                    # 本地当前阶梯剩余电量（kWh，顶档为不可用/无上限）
+                    CSGEnergySensor(
+                        coordinator,
+                        ele_account_number,
+                        SUFFIX_LOCAL_LADDER_REMAINING_KWH,
+                    ),
+                    # 本年阶梯预估电费（元，按配置阶梯对年累计用电量分段计价）
+                    CSGCostSensor(
+                        coordinator, ele_account_number, SUFFIX_LOCAL_YEAR_EST_COST
+                    ),
+                ]
+            )
 
     async_add_entities(all_sensors)
     _LOGGER.debug(f"created {len(all_sensors)} sensors for config {config_entry.title}")
@@ -852,6 +890,60 @@ class CSGCoordinator(DataUpdateCoordinator):
             ATTR_KEY_LATEST_DAY_DATE: latest_day_date
         }
 
+    def _update_local_ladder(self, account: CSGElectricityAccount):
+        """根据用户配置的阶梯电价 + 年累计用电量，本地计算阶梯档位/电价/剩余电量/预估电费。
+
+        - 按年累计，3 档；档位由"今年累计用电量"落在哪个区间决定
+        - 顶档(第3档)无上限，剩余电量记为不可用
+        - 预估电费 = 年累计电量按各档分段计价之和
+        """
+        acc = account.account_number
+        # 与默认值合并，兼容旧 entry 或缺失字段
+        ladder_cfg = {
+            **DEFAULT_LADDER,
+            **self._config[CONF_SETTINGS].get(CONF_LADDER, {}),
+        }
+
+        stage = tariff = remaining = est_cost = STATE_UNAVAILABLE
+
+        if ladder_cfg.get(CONF_LADDER_ENABLED):
+            year_kwh = self._gathered_data[acc].get(SUFFIX_THIS_YEAR_KWH)
+            if year_kwh not in (None, STATE_UNAVAILABLE, STATE_UPDATE_UNCHANGED):
+                try:
+                    u = float(year_kwh)
+                    t1 = float(ladder_cfg[CONF_LADDER_TIER1_MAX])
+                    t2 = float(ladder_cfg[CONF_LADDER_TIER2_MAX])
+                    p1 = float(ladder_cfg[CONF_LADDER_TIER1_PRICE])
+                    p2 = float(ladder_cfg[CONF_LADDER_TIER2_PRICE])
+                    p3 = float(ladder_cfg[CONF_LADDER_TIER3_PRICE])
+
+                    if u <= t1:
+                        stage, tariff = 1, p1
+                        remaining = round(t1 - u, 2)
+                    elif u <= t2:
+                        stage, tariff = 2, p2
+                        remaining = round(t2 - u, 2)
+                    else:
+                        stage, tariff = 3, p3
+                        remaining = STATE_UNAVAILABLE  # 顶档无上限
+
+                    est_cost = round(
+                        min(u, t1) * p1
+                        + max(min(u, t2) - t1, 0.0) * p2
+                        + max(u - t2, 0.0) * p3,
+                        2,
+                    )
+                except (TypeError, ValueError, KeyError) as exc:
+                    _LOGGER.error(
+                        "Ele account %s, compute local ladder failed: %s", acc, exc
+                    )
+                    stage = tariff = remaining = est_cost = STATE_UNAVAILABLE
+
+        self._gathered_data[acc][SUFFIX_LOCAL_LADDER] = stage
+        self._gathered_data[acc][SUFFIX_LOCAL_LADDER_TARIFF] = tariff
+        self._gathered_data[acc][SUFFIX_LOCAL_LADDER_REMAINING_KWH] = remaining
+        self._gathered_data[acc][SUFFIX_LOCAL_YEAR_EST_COST] = est_cost
+
     def _update_states(self):
         current_dt = datetime.datetime.now()
         this_year, this_month, this_day = (
@@ -939,6 +1031,15 @@ class CSGCoordinator(DataUpdateCoordinator):
         except Exception as exc:  # pylint: disable=broad-except
             _LOGGER.error(
                 "Ele account %s, update latest day data failed: %s",
+                account.account_number,
+                exc,
+            )
+
+        try:
+            self._update_local_ladder(account)
+        except Exception as exc:  # pylint: disable=broad-except
+            _LOGGER.error(
+                "Ele account %s, update local ladder failed: %s",
                 account.account_number,
                 exc,
             )

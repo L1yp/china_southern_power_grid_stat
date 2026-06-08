@@ -29,16 +29,25 @@ from .const import (
     CONF_AUTH_TOKEN,
     CONF_ELE_ACCOUNTS,
     CONF_GENERAL_ERROR,
+    CONF_LADDER,
+    CONF_LADDER_ENABLED,
+    CONF_LADDER_TIER1_MAX,
+    CONF_LADDER_TIER1_PRICE,
+    CONF_LADDER_TIER2_MAX,
+    CONF_LADDER_TIER2_PRICE,
+    CONF_LADDER_TIER3_PRICE,
     CONF_LOGIN_TYPE,
     CONF_REFRESH_QR_CODE,
     CONF_SETTINGS,
     CONF_SMS_CODE,
     CONF_UPDATE_INTERVAL,
     CONF_UPDATED_AT,
+    DEFAULT_LADDER,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
     ERROR_CANNOT_CONNECT,
     ERROR_INVALID_AUTH,
+    ERROR_LADDER_THRESHOLD_ORDER,
     ERROR_QR_NOT_SCANNED,
     ERROR_UNKNOWN,
     LOGIN_TYPE_TO_QR_APP_NAME,
@@ -46,6 +55,7 @@ from .const import (
     STEP_ALI_QR_LOGIN,
     STEP_CSG_QR_LOGIN,
     STEP_INIT,
+    STEP_LADDER,
     STEP_QR_LOGIN,
     STEP_SETTINGS,
     STEP_SMS_LOGIN,
@@ -334,6 +344,7 @@ class CSGConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             CONF_ELE_ACCOUNTS: {},
             CONF_SETTINGS: {
                 CONF_UPDATE_INTERVAL: DEFAULT_UPDATE_INTERVAL,
+                CONF_LADDER: dict(DEFAULT_LADDER),
             },
             CONF_UPDATED_AT: str(int(time.time() * 1000)),
         }
@@ -401,6 +412,7 @@ class CSGOptionsFlowHandler(config_entries.OptionsFlow):
                     {
                         STEP_ADD_ACCOUNT: "添加已绑定的缴费号",
                         STEP_SETTINGS: "参数设置",
+                        STEP_LADDER: "阶梯电价设置",
                     }
                 ),
             }
@@ -410,6 +422,8 @@ class CSGOptionsFlowHandler(config_entries.OptionsFlow):
                 return await self.async_step_add_account()
             if user_input[CONF_ACTION] == STEP_SETTINGS:
                 return await self.async_step_settings()
+            if user_input[CONF_ACTION] == STEP_LADDER:
+                return await self.async_step_ladder()
         return self.async_show_form(step_id=STEP_INIT, data_schema=schema)
 
     async def async_step_add_account(
@@ -522,4 +536,67 @@ class CSGOptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_create_entry(
             title="",
             data={},
+        )
+
+    async def async_step_ladder(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """阶梯电价设置（3 档，按年累计）"""
+        # 合并默认值与已存配置，兼容旧版本（没有 ladder 配置）的 entry
+        ladder = {**DEFAULT_LADDER, **self.config_entry.data[CONF_SETTINGS].get(
+            CONF_LADDER, {}
+        )}
+
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            if user_input[CONF_LADDER_TIER2_MAX] <= user_input[CONF_LADDER_TIER1_MAX]:
+                errors[CONF_GENERAL_ERROR] = ERROR_LADDER_THRESHOLD_ORDER
+            else:
+                # 不原地修改 entry 的嵌套 dict，整体替换以确保变更被检测到
+                new_data = self.config_entry.data.copy()
+                new_settings = dict(new_data[CONF_SETTINGS])
+                new_settings[CONF_LADDER] = {
+                    CONF_LADDER_ENABLED: user_input[CONF_LADDER_ENABLED],
+                    CONF_LADDER_TIER1_MAX: user_input[CONF_LADDER_TIER1_MAX],
+                    CONF_LADDER_TIER2_MAX: user_input[CONF_LADDER_TIER2_MAX],
+                    CONF_LADDER_TIER1_PRICE: user_input[CONF_LADDER_TIER1_PRICE],
+                    CONF_LADDER_TIER2_PRICE: user_input[CONF_LADDER_TIER2_PRICE],
+                    CONF_LADDER_TIER3_PRICE: user_input[CONF_LADDER_TIER3_PRICE],
+                }
+                new_data[CONF_SETTINGS] = new_settings
+                new_data[CONF_UPDATED_AT] = str(int(time.time() * 1000))
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry,
+                    data=new_data,
+                )
+                # 重新加载：让协调器读取新阶梯配置，并按启用状态创建/移除本地阶梯传感器
+                await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+                return self.async_create_entry(title="", data={})
+            # 校验失败：保留用户刚提交的值用于回填
+            ladder = {**ladder, **user_input}
+
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_LADDER_ENABLED, default=ladder[CONF_LADDER_ENABLED]
+                ): bool,
+                vol.Required(
+                    CONF_LADDER_TIER1_MAX, default=ladder[CONF_LADDER_TIER1_MAX]
+                ): vol.All(vol.Coerce(float), vol.Range(min=0)),
+                vol.Required(
+                    CONF_LADDER_TIER2_MAX, default=ladder[CONF_LADDER_TIER2_MAX]
+                ): vol.All(vol.Coerce(float), vol.Range(min=0)),
+                vol.Required(
+                    CONF_LADDER_TIER1_PRICE, default=ladder[CONF_LADDER_TIER1_PRICE]
+                ): vol.All(vol.Coerce(float), vol.Range(min=0)),
+                vol.Required(
+                    CONF_LADDER_TIER2_PRICE, default=ladder[CONF_LADDER_TIER2_PRICE]
+                ): vol.All(vol.Coerce(float), vol.Range(min=0)),
+                vol.Required(
+                    CONF_LADDER_TIER3_PRICE, default=ladder[CONF_LADDER_TIER3_PRICE]
+                ): vol.All(vol.Coerce(float), vol.Range(min=0)),
+            }
+        )
+        return self.async_show_form(
+            step_id=STEP_LADDER, data_schema=schema, errors=errors
         )
