@@ -60,6 +60,7 @@ from .const import (
     SUFFIX_THIS_MONTH_KWH,
     SUFFIX_THIS_YEAR_COST,
     SUFFIX_THIS_YEAR_KWH,
+    SUFFIX_TO_NAME_ZH,
     SUFFIX_YESTERDAY_KWH,
 )
 from .csg_client import (
@@ -229,7 +230,9 @@ class CSGBaseSensor(
 
     @property
     def name(self) -> str | None:
-        return f"{self._account_number}-{self._entity_suffix}"
+        # 显示中文名；未在映射表中的后缀回退为原始英文后缀
+        zh_name = SUFFIX_TO_NAME_ZH.get(self._entity_suffix, self._entity_suffix)
+        return f"{self._account_number} {zh_name}"
 
     @property
     def should_poll(self) -> bool:

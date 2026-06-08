@@ -73,6 +73,27 @@ SUFFIX_LAST_YEAR_COST = "last_year_total_cost"
 SUFFIX_LAST_MONTH_KWH = "last_month_total_usage"
 SUFFIX_LAST_MONTH_COST = "last_month_total_cost"
 
+# 传感器中文显示名（英文后缀 -> 中文名），仅影响实体的友好名称(name)，
+# 不影响 unique_id / entity_id，因此不会产生重复实体
+SUFFIX_TO_NAME_ZH = {
+    SUFFIX_BAL: "账户余额",
+    SUFFIX_ARR: "欠费金额",
+    SUFFIX_YESTERDAY_KWH: "昨日用电量",
+    SUFFIX_LATEST_DAY_KWH: "最近一日用电量",
+    SUFFIX_LATEST_DAY_COST: "最近一日电费",
+    SUFFIX_THIS_YEAR_KWH: "今年累计用电量",
+    SUFFIX_THIS_YEAR_COST: "今年累计电费",
+    SUFFIX_THIS_MONTH_KWH: "本月累计用电量",
+    SUFFIX_THIS_MONTH_COST: "本月累计电费",
+    SUFFIX_CURRENT_LADDER: "当前阶梯档位",
+    SUFFIX_CURRENT_LADDER_REMAINING_KWH: "当前阶梯剩余电量",
+    SUFFIX_CURRENT_LADDER_TARIFF: "当前阶梯电价",
+    SUFFIX_LAST_YEAR_KWH: "去年累计用电量",
+    SUFFIX_LAST_YEAR_COST: "去年累计电费",
+    SUFFIX_LAST_MONTH_KWH: "上月累计用电量",
+    SUFFIX_LAST_MONTH_COST: "上月累计电费",
+}
+
 ATTR_KEY_THIS_MONTH_BY_DAY = "this_month_by_day"
 ATTR_KEY_THIS_YEAR_BY_MONTH = "this_year_by_month"
 ATTR_KEY_LAST_MONTH_BY_DAY = "last_month_by_day"
