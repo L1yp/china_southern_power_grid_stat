@@ -7,7 +7,7 @@ from .csg_client import LoginType
 DOMAIN = "china_southern_power_grid_stat"
 
 # integration version, keep in sync with manifest.json
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 
 # config flow
 # main account (phone number)
@@ -138,12 +138,15 @@ SETTING_LAST_YEAR_UPDATE_DAY_THRESHOLD = 7
 # defaults
 DEFAULT_UPDATE_INTERVAL = timedelta(hours=4).seconds
 
-# 阶梯电价默认值（按年累计，3 档；阈值/电价仅为占位示例，需用户按本地实际填写）
+# 阶梯电价默认值（按年累计，3 档）
+# 第1档: ≤2760 kWh, 0.5283 元/kWh
+# 第2档: 2760~4440 kWh(含), 0.5783 元/kWh
+# 第3档: >4440 kWh, 0.8283 元/kWh
 DEFAULT_LADDER = {
-    CONF_LADDER_ENABLED: False,
-    CONF_LADDER_TIER1_MAX: 2400,
-    CONF_LADDER_TIER2_MAX: 4800,
-    CONF_LADDER_TIER1_PRICE: 0.6,
-    CONF_LADDER_TIER2_PRICE: 0.65,
-    CONF_LADDER_TIER3_PRICE: 0.9,
+    CONF_LADDER_ENABLED: True,
+    CONF_LADDER_TIER1_MAX: 2760,
+    CONF_LADDER_TIER2_MAX: 4440,
+    CONF_LADDER_TIER1_PRICE: 0.5283,
+    CONF_LADDER_TIER2_PRICE: 0.5783,
+    CONF_LADDER_TIER3_PRICE: 0.8283,
 }
